@@ -15,7 +15,16 @@ export function useGame(roomCode: string, playerId: string) {
       .catch(err => { if (mounted) { setError(err.message); setLoading(false) } })
 
     const sub = subscribeToGame(roomCode, state => { if (mounted) setGameState(state) })
-    return () => { mounted = false; sub.unsubscribe() }
+
+    const poll = setInterval(async () => {
+      if (!mounted) return
+      try {
+        const data = await getGame(roomCode)
+        setGameState(data.game_state)
+      } catch {}
+    }, 2000)
+
+    return () => { mounted = false; sub.unsubscribe(); clearInterval(poll) }
   }, [roomCode])
 
   const dispatch = useCallback(async (newState: GameState) => {

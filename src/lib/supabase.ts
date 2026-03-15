@@ -12,10 +12,10 @@ export function generateRoomCode(): string {
 }
 
 export function getOrCreatePlayerId(): string {
-  let id = localStorage.getItem('scout_player_id')
+  let id = sessionStorage.getItem('scout_player_id')
   if (!id) {
     id = crypto.randomUUID()
-    localStorage.setItem('scout_player_id', id)
+    sessionStorage.setItem('scout_player_id', id)
   }
   return id
 }
@@ -35,7 +35,6 @@ export async function joinGame(roomCode: string, player2Id: string) {
     .from('games')
     .update({ player2_id: player2Id })
     .eq('room_code', roomCode)
-    .is('player2_id', null)
     .select()
     .single()
   if (error) throw error

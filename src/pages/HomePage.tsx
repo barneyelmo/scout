@@ -19,7 +19,8 @@ export default function HomePage() {
       await createGame(roomCode, playerId, state)
       navigate(`/lobby/${roomCode}`)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to create game')
+      console.error('Create game error:', e)
+      setError(e instanceof Error ? e.message : JSON.stringify(e))
     } finally {
       setLoading(false)
     }

@@ -36,7 +36,8 @@ export default function LobbyPage() {
           if (mounted) setGameState(data.game_state)
         }
       } catch (e) {
-        if (mounted) setError(e instanceof Error ? e.message : 'Failed to load')
+        console.error('Lobby setup error:', e)
+        if (mounted) setError(e instanceof Error ? e.message : JSON.stringify(e))
       } finally {
         if (mounted) setLoading(false)
       }
@@ -49,7 +50,18 @@ export default function LobbyPage() {
       if (state.phase === 'playing') navigate(`/game/${roomCode}`)
     })
 
-    return () => { mounted = false; sub.unsubscribe() }
+    // Poll as fallback in case realtime subscription doesn't fire
+    const poll = setInterval(async () => {
+      if (!mounted) return
+      try {
+        const data = await getGame(roomCode)
+        const state: GameState = data.game_state
+        setGameState(state)
+        if (state.phase === 'playing') navigate(`/game/${roomCode}`)
+      } catch {}
+    }, 2000)
+
+    return () => { mounted = false; sub.unsubscribe(); clearInterval(poll) }
   }, [roomCode, isJoining, playerId, navigate])
 
   const handleFlip = async () => {
